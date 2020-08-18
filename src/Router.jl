@@ -7,7 +7,7 @@ the appropiate route handler function.
 module Router
 
 import Revise
-# Reexport 使用与 导出 导入的模块  
+# Reexport 用法: 导出 已导入的包到 （把引入包导出， 达到单一导入多个包目的）  
 import Reexport, Logging
 # OrderedCollections 有序集合（java -> TreeMap, 有序Set）
 import HTTP, URIParser, HttpCommon, Sockets, Millboard, Dates, OrderedCollections, JSON
@@ -131,6 +131,7 @@ Reference to the request variables collection.
 请求变量集合的引用
 """
 function _params_()
+  # 本地存储（?，未明白意思）
   task_local_storage(:__params)
 end
 function _params_(key::Union{String,Symbol})
