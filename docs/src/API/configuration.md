@@ -9,5 +9,5 @@ isprod
 istest
 env
 buildpath
-Settings
+Settings(应用程序配置-设置应用程序的默认设置)
 ```

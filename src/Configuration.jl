@@ -106,6 +106,7 @@ buildpath() :: String = Base.Filesystem.mktempdir(prefix = "jl_genie_build_", cl
     mutable struct Settings
 
 App configuration - sets up the app's defaults. Individual options are overwritten in the corresponding environment file.
+应用程序配置-设置应用程序的默认设置。在相应的环境文件中覆盖各个选项。
 
 # Arguments
 - `server_port::Int`: the port for running the web server (default 8000)
@@ -130,69 +131,115 @@ App configuration - sets up the app's defaults. Individual options are overwritt
 - `ssl_config::MbedTLS.SSLConfig`: default `nothing`. If not `nothing` and `ssl_enabled`, it will use the config to start the server over HTTPS.
 """
 mutable struct Settings
+  # 服务器端口
   server_port::Int
+  #服务器ip
   server_host::String
+  # 服务器根目录
   server_document_root::String
-
+  # 处理服务器静态文件
   server_handle_static_files::Bool
+  # 服务器签名
   server_signature::String
-
+  # 应用环境
   app_env::String
-
+  # 基站头信息
   cors_headers::Dict{String,String}
+  # 基站允许源
   cors_allowed_origins::Vector{String}
 
+
+  # 缓存时间
   cache_duration::Int
+  # 缓存存储
   cache_storage::Symbol
 
+  # 日志等级
   log_level::Logging.LogLevel
+  # 日志是否保存到文件
   log_to_file::Bool
 
+  # 资产(?，资源)-鉴定
   assets_fingerprinted::Bool
 
+  # 会话 key 名称
   session_key_name::String
+  # 会话存储
   session_storage::Symbol
 
+  # 传播器-不定时
   inflector_irregulars::Vector{Tuple{String,String}}
 
+  # 作为服务器运行
   run_as_server::Bool
 
+  # 是否作为websocket服务器
   websockets_server::Bool
+  # websocket端口
   websockets_port::Int
 
+  # 设定项文件夹初始值
   initializers_folder::String
 
+  # 路径-配置
   path_config::String
+  # 路径-环境
   path_env::String
+  # 路径-应用
   path_app::String
+  # 路径-资源
   path_resources::String
+  # 路径-库文件
   path_lib::String
+  # 路径-助手
   path_helpers::String
+  # 路径-日志
   path_log::String
+  # 路径-任务
   path_tasks::String
+  # 路径-构建
   path_build::String
+  # 路径-插件
   path_plugins::String
+  # 路径-缓存
   path_cache::String
+  # 路径-构造器
   path_initializers::String
+  # 路径-数据库
   path_db::String
+  # 路径-二级制文件
   path_bin::String
+  # 路径-源
   path_src::String
 
+  # web管道-默认路由
   webchannels_default_route::String
+  # web管道-js文件
   webchannels_js_file::String
+  # web管道-订阅频道(?)
   webchannels_subscribe_channel::String
+  # web管道-取消订阅频道(?)
   webchannels_unsubscribe_channel::String
+  # web管道-默认路由
   webchannels_autosubscribe::Bool
 
+  # html解析器-关闭标记
   html_parser_close_tag::String
+  # html解析器-字符在(?)
   html_parser_char_at::String
+  # html解析器-字符点(?)
   html_parser_char_dot::String
+  # html解析器-字符列(?)
   html_parser_char_column::String
+  # html解析器-字符破折符
   html_parser_char_dash::String
 
+  # ssl证书启动
   ssl_enabled::Bool
+  # ssl证书配置
   ssl_config::Union{MbedTLS.SSLConfig,Nothing}
 
+  # 默认构造
   Settings(;
             server_port                 = (haskey(ENV, "PORT") ? parse(Int, ENV["PORT"]) : 8000), # default port for binding the web server
             server_host                 = ENV["HOST"],

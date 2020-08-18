@@ -1,20 +1,25 @@
 """
 Loads dependencies and bootstraps a Genie app. Exposes core Genie functionality.
+加载依赖并引导一个Genie应用。暴露核心的Genie功能。
 """
 module Genie
 
+# 热加载，不需要重启julia实现热更新
 import Revise
 
 push!(LOAD_PATH, @__DIR__)
 
+# 加载配置文件
 include("Configuration.jl")
 const config = Configuration.Settings(app_env = ENV["GENIE_ENV"])
 
+# 加载常量包
 include("constants.jl")
 
 import Sockets
 import Logging, LoggingExtras
 
+# Dict(java->Map)工具包
 include(joinpath(@__DIR__, "genie_types.jl"))
 
 include("HTTPUtils.jl")
@@ -43,14 +48,17 @@ include("Plugins.jl")
 include("Deploy.jl")
 
 # === #
-# EXTRAS #
+# EXTRAS （额外） #
 
+# 缓存（Genie独有）
 include("Cache.jl")
 config.cache_storage == :File && include("cache_adapters/FileCache.jl")
 
+# 会话对象
 include("Sessions.jl")
 config.session_storage == :File && include("session_adapters/FileSession.jl")
 
+# 启动命令
 export serve, up, down
 
 
@@ -58,6 +66,8 @@ export serve, up, down
     serve(path::String = Genie.config.server_document_root, params...; kwparams...)
 
 Serves a folder of static files located at `path`. Allows Genie to be used as a static files web server.
+提供一个位于“path”的静态文件文件夹。允许Genie被用作一个静态文件网络服务器。
+
 The `params` and `kwparams` arguments are forwarded to `Genie.startup()`.
 
 # Arguments

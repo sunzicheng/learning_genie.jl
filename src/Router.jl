@@ -1,14 +1,19 @@
 """
 Parses requests and extracts parameters, setting up the call variables and invoking
+解析请求和提取参数，设置调用变量和调用
+
 the appropiate route handler function.
 """
 module Router
 
 import Revise
+# Reexport 使用与 导出 导入的模块  
 import Reexport, Logging
+# OrderedCollections 有序集合（java -> TreeMap, 有序Set）
 import HTTP, URIParser, HttpCommon, Sockets, Millboard, Dates, OrderedCollections, JSON
 import Genie
 
+# 服务器请求头相关常量包
 include("mimetypes.jl")
 
 export route, routes, channel, channels, serve_static_file
@@ -39,8 +44,14 @@ const request_mappings = Dict{Symbol,String}(
   :xml        => "text/xml"
 )
 
+#=
+    钩子函数集合
+=#
+# 匹配前方法
 const pre_match_hooks = Function[]
+# 响应前钩子函数
 const pre_response_hooks = Function[]
+# 内容协议钩子函数集合
 const content_negotiation_hooks = Function[]
 
 
@@ -48,6 +59,7 @@ const content_negotiation_hooks = Function[]
     mutable struct Route
 
 Representation of a route object
+路由的表示形式 
 """
 mutable struct Route
   method::String
@@ -56,6 +68,7 @@ mutable struct Route
   name::Union{Symbol,Nothing}
 end
 
+# 空参处理
 Route(; method = GET, path = "", action = (() -> error("Route not set")), name = nothing) = Route(method, path, action, name)
 
 
@@ -63,17 +76,19 @@ Route(; method = GET, path = "", action = (() -> error("Route not set")), name =
     mutable struct Channel
 
 Representation of a WebSocket Channel object
+WebSocket通道对象的表示形式
 """
 mutable struct Channel
   path::String
   action::Function
   name::Union{Symbol,Nothing}
 
+  # 管道空处理
   Channel(; path = "", action = (() -> error("Channel not set")), name = nothing) =
     new(path, action)
 end
 
-
+# 增强原有的show方法
 function Base.show(io::IO, r::Route)
   print(io, "[$(r.method)] $(r.path) => $(r.action) | :$(r.name)")
 end
@@ -81,7 +96,7 @@ function Base.show(io::IO, c::Channel)
   print(io, "[WS] $(c.path) => $(c.action) | :$(c.name)")
 end
 
-
+# 存储容器
 const _routes = OrderedCollections.OrderedDict{Symbol,Route}()
 const _channels = OrderedCollections.OrderedDict{Symbol,Channel}()
 
@@ -90,12 +105,20 @@ const _channels = OrderedCollections.OrderedDict{Symbol,Channel}()
     mutable struct Params{T}
 
 Collection of key value pairs representing the parameters of the current request - response cycle.
+表示当前请求-响应周期的参数的键值对的集合。
 """
 mutable struct Params{T}
   collection::Dict{Symbol,T}
 end
+#=
+    默认构造函数：
+        方法体： 
+            参数构造函数：
+                参数： 从配置环境中获取构造参数 -> setup_base_params()
+=#
 Params() = Params(setup_base_params())
 
+# 增强原有方法
 Base.Dict(params::Params) = params.collection
 
 Base.getindex(params, keys...) = getindex(Dict(params), keys...)
@@ -105,6 +128,7 @@ Base.getindex(params, keys...) = getindex(Dict(params), keys...)
     _params_()
 
 Reference to the request variables collection.
+请求变量集合的引用
 """
 function _params_()
   task_local_storage(:__params)
@@ -118,24 +142,32 @@ end
     ispayload(req::HTTP.Request)
 
 True if the request can carry a payload - that is, it's a `POST`, `PUT`, or `PATCH` request
+如果请求可以携带有效负载——即“POST”、“PUT”或“PATCH”请求，则为True
 """
 ispayload(req::HTTP.Request) = req.method in [POST, PUT, PATCH]
 
 
 """
+    # 路由请求: (request, response, ip) -> response
     route_request(req::Request, res::Response, ip::IPv4 = Genie.config.server_host) :: Response
 
 First step in handling a request: sets up @params collection, handles query vars, negotiates content.
+处理请求的第一步:设置@params集合，处理查询变量，协商内容。
 """
 function route_request(req::HTTP.Request, res::HTTP.Response, ip::Sockets.IPv4 = Sockets.IPv4(Genie.config.server_host)) :: HTTP.Response
+  # 构造请求体对象
   params = Params()
+  # 设置请求ip, 形式 key -> value
   params.collection[:request_ipv4] = ip
 
+  # unique -> 去重
   for f in unique(content_negotiation_hooks)
+    # 执行函数
     req, res, params.collection = f(req, res, params.collection)
   end
 
   if is_static_file(req.target)
+    # 是静态文件
     Genie.config.server_handle_static_files && return serve_static_file(req.target)
 
     return error(req.target, response_mime(), Val(404))
@@ -846,6 +878,7 @@ end
     setup_base_params(req::Request, res::Response, params::Dict{Symbol,Any}) :: Dict{Symbol,Any}
 
 Populates `params` with default environment vars.
+使用默认环境变量填充“参数”。
 """
 function setup_base_params(req::HTTP.Request = HTTP.Request(), res::Union{HTTP.Response,Nothing} = req.response,
                             params::Dict{Symbol,Any} = Dict{Symbol,Any}()) :: Dict{Symbol,Any}
@@ -950,9 +983,11 @@ end
 
 
 """
+    # 是否为静态文件
     is_static_file(resource::String) :: Bool
 
 Checks if the requested resource is a static file.
+检查请求资源是否为静态文件
 """
 function is_static_file(resource::String) :: Bool
   isfile(file_path(to_uri(resource).path))

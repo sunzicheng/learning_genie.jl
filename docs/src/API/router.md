@@ -3,10 +3,10 @@ CurrentModule = Router
 ```
 
 ```@docs
-Route
-Channel
-Router.show
-Params
+Route(路由对象类型)
+Channel(连接管道对象类型)
+Router.show(打印重载函数)
+Params(请求体参数集合类型, 元素内类型: Dict)
 ispayload
 route_request
 route_ws_request
@@ -53,7 +53,7 @@ _params_
 request
 response_type
 append_to_routes_file
-is_static_file
+is_static_file(判断请求源是否为静态文件函数)
 to_uri
 escape_resource_path
 serve_static_file
