@@ -1,5 +1,6 @@
 """
 Core genie configuration / settings functionality.
+核心精灵配置/设置功能。
 """
 module Configuration
 
@@ -9,11 +10,13 @@ using Revise
   const GENIE_VERSION
 
 References the current Genie version number.
+引用当前的Genie版本号。
 """
 const GENIE_VERSION = v"1.1"
 
 import Logging
 import Genie
+# 加密相关包
 import MbedTLS
 
 export isdev, isprod, istest, env
@@ -24,7 +27,7 @@ const DEV   = "dev"
 const PROD  = "prod"
 const TEST  = "test"
 
-
+# 不存在时 设置环境默认值
 haskey(ENV, "GENIE_ENV") || (ENV["GENIE_ENV"] = DEV)
 haskey(ENV, "HOST") || (ENV["HOST"] = "127.0.0.1")
 
@@ -33,7 +36,7 @@ haskey(ENV, "HOST") || (ENV["HOST"] = "127.0.0.1")
     isdev()  :: Bool
 
 Set of utility functions that return whether or not the current environment is development, production or testing.
-
+一组实用函数，返回当前环境是开发、生产还是测试。
 # Examples
 ```julia
 julia> Configuration.isdev()
@@ -50,7 +53,7 @@ isdev() :: Bool  = (Genie.config.app_env == DEV)
     isprod() :: Bool
 
 Set of utility functions that return whether or not the current environment is development, production or testing.
-
+一组实用函数，返回当前环境是开发、生产还是测试。
 # Examples
 ```julia
 julia> Configuration.isdev()
@@ -67,6 +70,7 @@ isprod():: Bool = (Genie.config.app_env == PROD)
     istest() :: Bool
 
 Set of utility functions that return whether or not the current environment is development, production or testing.
+一组实用函数，返回当前环境是开发、生产还是测试。
 
 # Examples
 ```julia
@@ -84,7 +88,7 @@ istest():: Bool = (Genie.config.app_env == TEST)
     env() :: String
 
 Returns the current Genie environment.
-
+返回当前的精灵环境。
 # Examples
 ```julia
 julia> Configuration.env()
@@ -98,6 +102,7 @@ env() :: String = Genie.config.app_env
     buildpath() :: String
 
 Constructs the temp dir where Genie's view files are built.
+构造构建精灵视图文件的temp目录。
 """
 buildpath() :: String = Base.Filesystem.mktempdir(prefix = "jl_genie_build_", cleanup = false)
 
@@ -110,25 +115,45 @@ App configuration - sets up the app's defaults. Individual options are overwritt
 
 # Arguments
 - `server_port::Int`: the port for running the web server (default 8000)
+                      用于运行web服务器的端口(默认为8000)
 - `server_host::String`: the host for running the web server (default "127.0.0.1")
+                         运行web服务器的主机(默认为“127.0.0.1”)
 - `server_document_root::String`: path to the document root (default "public/")
+                                  文档根目录的路径(默认为“public/”)
 - `server_handle_static_files::Bool`: if `true`, Genie will also serve static files. In production, it is recommended to serve static files with a web server like Nginx.
+                                      如果“true”，Genie还将提供静态文件。在生产中，建议使用像Nginx这样的web服务器来提供静态文件。
 - `server_signature::String`: Genie's signature used for tagging the HTTP responses. If empty, it will not be added.
+                              Genie用于标记HTTP响应的签名。如果为空，则不会添加。
 - `app_env::String`: the environment in which the app is running (dev, test, or prod)
+                     应用程序运行的环境(dev、test或prod)
 - `cors_headers::Dict{String,String}`: default `Access-Control-*` CORS settings
+                                       默认的“Access-Control-*” CORS设置
 - `cors_allowed_origins::Vector{String}`: allowed origin hosts for CORS settings
+                                          允许原点主机进行CORS设置
 - `cache_duraction::Int`: cache expiration time in seconds
+                          缓存过期时间(秒)
 - `log_level::Logging.LogLevel`: logging severity level
+                                 日志严重性级别
 - `log_to_file::Bool`: if true, information will be logged to file besides REPL
+                       如果为真，除REPL外，信息将被记录到文件中
 - `assets_fingerprinted::Bool`: if true, asset fingerprinting is used in the asset pipeline
+                                如果为真，则在资产管道中使用资产指纹(认证好理解点)
 - `session_key_name::String`: the name of the session cookie
+                              会话cookie的名称
 - `session_storage::Symbol`: the backend adapter for session storage (default File)
+                             会话存储的后端适配器(默认文件)
 - `inflector_irregulars::Vector{Tuple{String,String}}`: additional irregular singular-plural forms to be used by the Inflector
+                                                        变形器将使用其他不规则单数复数形式
 - `run_as_server::Bool`: when true the server thread is launched synchronously to avoid that the script exits
+                         如果为true，则同步启动服务器线程，以避免脚本退出
 - `websockets_server::Bool`: if true, the websocket server is also started together with the web server
+                             如果为true，则还将与Web服务器一起启动websocket服务器
 - `html_parser_close_tag::String`: default " /". Can be changed to an empty string "" so the single tags would not be closed.
+                                   默认为" /"。 可以更改为空字符串""，这样就不会关闭单个标签。
 - `ssl_enabled::Bool`: default false. Server runs over SSL/HTTPS in development.
+                       默认为false。 服务器在开发中通过SSL / HTTPS运行。
 - `ssl_config::MbedTLS.SSLConfig`: default `nothing`. If not `nothing` and `ssl_enabled`, it will use the config to start the server over HTTPS.
+                                   默认为"nothing"。 如果不是nothing和ssl_enabled，它将使用配置通过HTTPS启动服务器
 """
 mutable struct Settings
   # 服务器端口

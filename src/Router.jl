@@ -47,9 +47,9 @@ const request_mappings = Dict{Symbol,String}(
 #=
     钩子函数集合
 =#
-# 匹配前方法
+# 匹配前钩子函数集合
 const pre_match_hooks = Function[]
-# 响应前钩子函数
+# 响应前钩子函数集合
 const pre_response_hooks = Function[]
 # 内容协议钩子函数集合
 const content_negotiation_hooks = Function[]
@@ -161,29 +161,34 @@ function route_request(req::HTTP.Request, res::HTTP.Response, ip::Sockets.IPv4 =
   # 设置请求ip, 形式 key -> value
   params.collection[:request_ipv4] = ip
 
-  # unique -> 去重
+  # 运行内容协议钩子函数
   for f in unique(content_negotiation_hooks)
     # 执行函数
     req, res, params.collection = f(req, res, params.collection)
   end
 
   if is_static_file(req.target)
-    # 是静态文件
+    # 是静态文件, 判断是否运行提供静态文件
     Genie.config.server_handle_static_files && return serve_static_file(req.target)
 
     return error(req.target, response_mime(), Val(404))
   end
 
+  # 如果为测试环境，手动刷新(如同JReble，重新构建一个意思)
   Genie.Configuration.isdev() && Revise.revise()
 
+  # 运行匹配前钩子函数
   for f in unique(pre_match_hooks)
     req, res, params.collection = f(req, res, params.collection)
   end
 
+  # 将调用的URL与相应的路由进行匹配，设置执行环境并调用controller方法。
   res = match_routes(req, res, params)
 
+  # 如果为 404（true）->请求为 OPTIONS(握手认证) -> 忽略错误，返回握手成功
   res.status == 404 && req.method == OPTIONS && return preflight_response()
 
+  # 执行响应前钩子函数
   for f in unique(pre_response_hooks)
     req, res, params.collection = f(req, res, params.collection)
   end
@@ -487,6 +492,7 @@ end
     match_routes(req::Request, res::Response, params::Params) :: Response
 
 Matches the invoked URL to the corresponding route, sets up the execution environment and invokes the controller method.
+将调用的URL与相应的路由进行匹配，设置执行环境并调用controller方法。
 """
 function match_routes(req::HTTP.Request, res::HTTP.Response, params::Params) :: HTTP.Response
   for r in routes()
@@ -1060,6 +1066,7 @@ end
 preflight_response() :: HTTP.Response
 
 Sets up the preflight CORS response header.
+设置返回前response的CORS响应头。
 """
 function preflight_response() :: HTTP.Response
   HTTP.Response(200, Genie.config.cors_headers, body = "Success")
