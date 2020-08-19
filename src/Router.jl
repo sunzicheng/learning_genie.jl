@@ -185,7 +185,7 @@ function route_request(req::HTTP.Request, res::HTTP.Response, ip::Sockets.IPv4 =
   # 将调用的URL与相应的路由进行匹配，设置执行环境并调用controller方法。
   res = match_routes(req, res, params)
 
-  # 如果为 404（true）->请求为 OPTIONS(握手认证) -> 忽略错误，返回握手成功
+  # 如果为 404（true）->请求方式为 OPTIONS(握手认证) -> 忽略错误，返回握手成功
   res.status == 404 && req.method == OPTIONS && return preflight_response()
 
   # 执行响应前钩子函数
@@ -195,6 +195,7 @@ function route_request(req::HTTP.Request, res::HTTP.Response, ip::Sockets.IPv4 =
 
   reqstatus = "$(req.target) $(res.status)\n"
 
+  # 日志记录
   if res.status < 400
     @info reqstatus
   else
