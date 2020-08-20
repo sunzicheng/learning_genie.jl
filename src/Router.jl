@@ -3,13 +3,15 @@ Parses requests and extracts parameters, setting up the call variables and invok
 解析请求和提取参数，设置调用变量和调用
 
 the appropiate route handler function.
+适当的 route处理函数。
 """
 module Router
 
 import Revise
 # Reexport 用法: 导出 已导入的包到 （把引入包导出， 达到单一导入多个包目的）  
 import Reexport, Logging
-# OrderedCollections 有序集合（java -> TreeMap, 有序Set）
+# OrderedCollections 有序集合（java -> TreeMap, 有序Set）;
+# URIParser 资源解析器
 import HTTP, URIParser, HttpCommon, Sockets, Millboard, Dates, OrderedCollections, JSON
 import Genie
 
@@ -193,6 +195,7 @@ function route_request(req::HTTP.Request, res::HTTP.Response, ip::Sockets.IPv4 =
     req, res, params.collection = f(req, res, params.collection)
   end
 
+  # 拼接结果打印
   reqstatus = "$(req.target) $(res.status)\n"
 
   # 日志记录
@@ -210,24 +213,30 @@ end
     route_ws_request(req::Request, msg::String, ws_client::HTTP.WebSockets.WebSocket, ip::IPv4 = Genie.config.server_host) :: String
 
 First step in handling a web socket request: sets up @params collection, handles query vars.
+处理web套接字请求的第一步:设置@params集合，处理查询变量。
 """
 function route_ws_request(req, msg::String, ws_client, ip::Sockets.IPv4 = Sockets.IPv4(Genie.config.server_host)) :: String
   params = Params()
 
+  # ws => WebSocket
   params.collection[Genie.PARAMS_WS_CLIENT] = ws_client
 
+  # 执行并得到参数
   extract_get_params(URIParser.URI(req.target), params)
 
+  # 如果为测试环境，手动刷新(如同JReble，重新构建一个意思)
   Genie.Configuration.isdev() && Revise.revise()
 
+  # 执行请求前钩子函数
   for f in unique(pre_match_hooks)
     req, msg, params.collection = f(req, msg, params.collection)
   end
 
+  # 找到相应管道，设置好环境并执行管道控制器的方法
   match_channels(req, msg, ws_client, params)
 end
 
-
+# 增强原有添加方法
 function Base.push!(collection, name::Symbol, item::Union{Route,Channel})
   collection[name] = item
 end
@@ -235,6 +244,7 @@ end
 
 """
 Named Genie routes constructors.
+名为 Genie routes 构造函数
 """
 function route(action::Function, path::String; method = GET, named::Union{Symbol,Nothing} = nothing) :: Route
   route(path, action, method = method, named = named)
@@ -252,6 +262,7 @@ end
 
 """
 Named Genie channels constructors.
+名为 Genie channels 构造函数
 """
 function channel(action::Function, path::String; named::Union{Symbol,Nothing} = nothing) :: Channel
   channel(path, action, named = named)
@@ -271,6 +282,7 @@ end
     routename(params) :: Symbol
 
 Computes the name of a route.
+推断路由的名称。
 """
 function routename(params::Route) :: Symbol
   baptizer(params, String[lowercase(params.method)])
@@ -281,6 +293,7 @@ end
     channelname(params) :: Symbol
 
 Computes the name of a channel.
+推断管道的名称。
 """
 function channelname(params::Channel) :: Symbol
   baptizer(params, String[])
@@ -291,6 +304,7 @@ end
     baptizer(params::Union{Route,Channel}, parts::Vector{String}) :: Symbol
 
 Generates default names for routes and channels.
+为路由和通道生成默认名称。
 """
 function baptizer(params::Union{Route,Channel}, parts::Vector{String}) :: Symbol
   for uri_part in split(params.path, "/", keepempty = false)
@@ -569,6 +583,7 @@ end
     match_channels(req::Request, msg::String, ws_client::HTTP.WebSockets.WebSocket, params::Params) :: String
 
 Matches the invoked URL to the corresponding channel, sets up the execution environment and invokes the channel controller method.
+将调用的URL匹配到相应的通道，设置执行环境并调用通道控制器方法。
 """
 function match_channels(req, msg::String, ws_client, params::Params) :: String
   for c in channels()
@@ -671,6 +686,7 @@ end
     parse_channel(channel::String) :: Tuple{String,Vector{String},Vector{Any}}
 
 Parses a channel and extracts its named parms and types.
+解析通道并提取其命名的parms和类型。
 """
 function parse_channel(channel::String) :: Tuple{String,Vector{String},Vector{Any}}
   parts = String[]
@@ -732,6 +748,7 @@ end
     extract_get_params(uri::URI, params::Params) :: Bool
 
 Extracts query vars and adds them to the execution `params` `Dict`.
+提取查询变量并将其添加到执行 “params” “Dict” 中。
 """
 function extract_get_params(uri::URIParser.URI, params::Params) :: Bool
   # GET params
