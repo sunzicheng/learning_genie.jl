@@ -318,6 +318,7 @@ end
 
 """
 The list of the defined named routes.
+已定义的命名路由的列表。
 """
 function named_routes() :: OrderedCollections.OrderedDict{Symbol,Route}
   _routes
@@ -329,6 +330,7 @@ const namedroutes = named_routes
     @routes
 
 Collection of named routes
+获取已命名的的路由宏
 """
 macro routes()
   _routes
@@ -339,6 +341,7 @@ end
     named_channels() :: Dict{Symbol,Any}
 
 The list of the defined named channels.
+获取已命名了的管道列表
 """
 function named_channels() :: OrderedCollections.OrderedDict{Symbol,Channel}
   _channels
@@ -350,6 +353,7 @@ const namedchannels = named_channels
     @channels
 
 Collection of named channels.
+获取已命名的的管道宏
 """
 macro channels()
   _channels
@@ -358,6 +362,7 @@ end
 
 """
 Gets the `Route` correspoding to `routename`
+获取与"routename"对应的"Route"函数
 """
 function get_route(route_name::Symbol; default::Union{Route,Nothing} = Route()) :: Route
   haskey(named_routes(), route_name) ?
@@ -375,6 +380,8 @@ end
     routes() :: Vector{Route}
 
 Returns a vector of defined routes.
+返回已定义路由的vector函数。
+注: reverse 反转
 """
 function routes() :: Vector{Route}
   collect(values(_routes)) |> reverse
@@ -385,6 +392,8 @@ end
     channels() :: Vector{Channel}
 
 Returns a vector of defined channels.
+返回已定义管道的vector函数。
+注: reverse 反转
 """
 function channels() :: Vector{Channel}
   collect(values(_channels)) |> reverse
@@ -395,6 +404,7 @@ end
     delete!(routes, route_name::Symbol)
 
 Removes the route with the corresponding name from the routes collection and returns the collection of remaining routes.
+从路由集合中删除具有相应名称的路由，并返回剩余路由的集合函数。
 """
 function delete!(routes::OrderedCollections.OrderedDict{Symbol,Route}, key::Symbol) :: OrderedCollections.OrderedDict{Symbol,Route}
   OrderedCollections.delete!(routes, key)
@@ -403,6 +413,7 @@ end
 
 """
 Generates the HTTP link corresponding to `route_name` using the parameters in `d`.
+使用' d '中的参数生成与' route_name '对应的HTTP链接函数。
 """
 function to_link(route_name::Symbol, d::Dict{Symbol,T}; preserve_query::Bool = true, extra_query::Dict = Dict())::String where {T}
   route = get_route(route_name)
@@ -454,11 +465,13 @@ end
 
 """
 Generates the HTTP link corresponding to `route_name` using the parameters in `route_params`.
+使用' route_params '中的参数生成与' route_name '对应的HTTP链接函数。
 """
 function to_link(route_name::Symbol; preserve_query::Bool = true, extra_query::Dict = Dict(), route_params...) :: String
   to_link(route_name, route_params_to_dict(route_params), preserve_query = preserve_query, extra_query = extra_query)
 end
 
+# 多种命名指向指向同一函数索引, 解决相识命名问题
 const link_to = to_link
 const linkto = link_to
 const tolink = to_link
@@ -469,6 +482,7 @@ const toroute = to_link
     route_params_to_dict(route_params)
 
 Converts the route params to a `Dict`.
+将路由参数转换为“Dict”函数
 """
 function route_params_to_dict(route_params) :: Dict{Symbol,Any}
   Dict{Symbol,Any}(route_params)
@@ -479,6 +493,7 @@ end
     action_controller_params(action::Function, params::Params) :: Nothing
 
 Sets up the :action_controller, :action, and :controller key - value pairs of the `params` collection.
+设置“params”集合的 :action_controller, :action, :controller ( key - value形式)
 """
 function action_controller_params(action::Function, params::Params) :: Nothing
   params.collection[:action_controller] = action |> string |> Symbol
@@ -493,6 +508,7 @@ end
     run_hook(controller::Module, hook_type::Symbol) :: Bool
 
 Invokes the designated hook.
+调用指定的钩子函数
 """
 function run_hook(controller::Module, hook_type::Symbol) :: Bool
   isdefined(controller, hook_type) || return false
