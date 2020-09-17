@@ -37,10 +37,10 @@ action_controller_params    (设置“params”集合的 :action_controller, :ac
 run_hook                    (调用指定的钩子函数)
 match_routes                (将调用的URL与相应的路由进行匹配，设置执行环境并调用controller函数)
 match_channels              (将调用的URL与相应的管道进行匹配，设置执行环境并调用controller函数)
-parse_route
-parse_channel
-extract_uri_params
-extract_get_params
+parse_route                 (解析路由并提取其命名参数和类型)
+parse_channel               (解析通道并提取其命名的parms和类型)
+extract_uri_params          (从请求URI中提取参数并设置“参数”和“Dict”)
+extract_get_params          (提取查询变量并将其添加到执行 “params” “Dict” 中)
 extract_post_params
 extract_request_params
 content_type

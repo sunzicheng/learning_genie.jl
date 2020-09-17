@@ -656,6 +656,7 @@ end
     parse_route(route::String) :: Tuple{String,Vector{String},Vector{Any}}
 
 Parses a route and extracts its named params and types.
+解析路由并提取其命名参数和类型。
 """
 function parse_route(route::String) :: Tuple{String,Vector{String},Vector{Any}}
   parts = String[]
@@ -738,6 +739,7 @@ end
     extract_uri_params(uri::String, regex_route::Regex, param_names::Vector{String}, param_types::Vector{Any}, params::Params) :: Bool
 
 Extracts params from request URI and sets up the `params` `Dict`.
+从请求URI中提取参数并设置“参数”和“Dict”。
 """
 function extract_uri_params(uri::String, regex_route::Regex, param_names::Vector{String}, param_types::Vector{Any}, params::Params) :: Bool
   matches = match(regex_route, uri)
@@ -755,8 +757,9 @@ function extract_uri_params(uri::String, regex_route::Regex, param_names::Vector
 
     i += 1
   end
-
-  true # this must be bool cause it's used in bool context for chaining
+  # this must be bool cause it's used in bool context for chaining
+  # 这必须是bool，因为它在bool上下文中用于链接
+  true 
 end
 
 
